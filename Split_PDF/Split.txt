@@ -1,0 +1,79 @@
+import os
+import sys
+
+import fitz
+import re
+
+from pathlib import Path
+
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # exécution en exe après traitement par pyinstaller (onedir ou onefile)   
+    REPEXE = sys._MEIPASS # répertoire  (temporaire) des modules
+    REPFICEXE = os.path.dirname(sys.executable) # répertoire de l'exe
+else:
+    # exécution en .py
+    REPEXE = REPFICEXE = os.path.dirname(os.path.abspath(__file__)) # répertoire du .py exécuté
+
+#Recupere le chemin relatif
+directory = Path(__file__).parent
+
+#recuperer les données dans un fichier
+fichier = open('donnees.txt', 'r')       
+
+cheminFacturesMasse = fichier.readline()
+cheminFacturesMasse = cheminFacturesMasse.replace('\n', '')
+cheminFacturesIndividuelles= fichier.readline()
+cheminFacturesIndividuelles=cheminFacturesIndividuelles.replace('\n', '')
+variableRecherche= fichier.readline()
+variableRecherche=variableRecherche.replace('\n', '')
+
+variableOccurence= fichier.readline()
+variableOccurence=variableRecherche.replace('\n', '')
+
+fichier.close
+
+
+#Boucle pour appliquer le code sur tous les fichiers du repertoire
+for filename in os.listdir(cheminFacturesMasse+"//"):
+
+#for filename in os.listdir(directory):
+    if filename.endswith('.PDF') or filename.endswith('.pdf'):
+        #print(filename)
+        #os.system("pause")
+        doc = fitz.open(cheminFacturesMasse+"//"+ filename)    #encoding="utf_8" encoding="latin_1"
+        
+        #print("nb pages : " + str(doc.page_count))
+        prevNum = -1
+
+
+        for x,page in enumerate(doc,start=0):
+        
+            text=page.get_text()
+            #print(text)
+            #os.system("pause")  
+            
+            #Recupere le numéro de facture
+            result = re.search(r'^'+variableRecherche+'[\r\n]+(.*)$',text,flags=re.MULTILINE)
+            #print(result.group(variableOccurence))
+
+            numfacture = result.group(variableOccurence)
+            
+	    #Découpage en fonction du nombre de page
+            if numfacture == prevNum:
+                y=y+1
+            else:
+                y=0
+            
+            
+                #if not os.path.exists('Factures'):
+                    #os.makedirs('Factures')
+                
+            doc2 = fitz.open()  # on crée un nouveau PDF
+            doc2.insert_pdf(doc,from_page=x-y,to_page=x)
+
+            doc2.save(cheminFacturesIndividuelles +"//"+ numfacture + ".PDF")
+            prevNum = numfacture
+    
+    continue
+        
+  

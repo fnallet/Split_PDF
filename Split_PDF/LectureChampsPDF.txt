@@ -1,0 +1,36 @@
+import os
+import sys
+
+import fitz
+import re
+
+from pathlib import Path
+
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # exécution en exe après traitement par pyinstaller (onedir ou onefile)   
+    REPEXE = sys._MEIPASS # répertoire  (temporaire) des modules
+    REPFICEXE = os.path.dirname(sys.executable) # répertoire de l'exe
+else:
+    # exécution en .py
+    REPEXE = REPFICEXE = os.path.dirname(os.path.abspath(__file__)) # répertoire du .py exécuté
+
+#Recupere le chemin relatif
+directory = Path(__file__).parent
+
+#Boucle pour appliquer le code sur tous les fichiers du repertoire
+
+for filename in os.listdir(directory):
+    if filename.endswith('.pdf') or filename.endswith('.PDF'):
+
+        doc = fitz.open(filename)    #encoding="utf_8" encoding="latin_1" directory+"//"+
+
+        prevNum = -1
+
+        for x,page in enumerate(doc,start=0):
+        
+            text=page.get_text()
+            print(text)
+            os.system("pause")     
+    continue
+        
+  
